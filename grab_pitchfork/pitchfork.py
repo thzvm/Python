@@ -1,4 +1,4 @@
-from grab import Grab, GrabError
+from grab import Grab
 from json import loads
 from urllib.parse import quote
 from urllib.request import urlopen, HTTPError
