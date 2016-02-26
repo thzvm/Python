@@ -7,7 +7,7 @@ from urllib.request import urlopen, HTTPError
 from bs4 import BeautifulSoup as Soup
 from multiprocessing.dummy import Pool as ThreadPool
 
-''''''
+#govnocode
 
 class pitchfork:
     ''''''
@@ -29,7 +29,6 @@ class pitchfork:
         except IndexError:
             print('Pitchfork...')
             self.test = False
-
         except HTTPError:
             print('Discogs...')
             self.test = False
@@ -46,18 +45,14 @@ class pitchfork:
         page = 1
         page_not_found = None
         while page_not_found == None:
-
             try:
                 print('Page', page)
-
                 pitchfork_page = Grab()
                 pitchfork_page.go(self.pitchfork_url + str(page))
                 soup = Soup(pitchfork_page.doc.select('//div[@id="main"]/ul[@class="object-grid "]').html(), 'lxml')
                 albums_on_page = []
-
                 for link in soup.find_all('a', href=True):
                     albums_on_page.append('http://pitchfork.com' + link['href'])
-
                 try:
                     pool = ThreadPool(int(len(albums_on_page) / 2))
                     pool.map(self.album, albums_on_page)
@@ -65,7 +60,6 @@ class pitchfork:
                     time.sleep(60)
                     pool = ThreadPool(int(len(albums_on_page) / 2))
                     pool.map(self.album, albums_on_page)
-
                 page += 1
 
                 #if page > 2:
