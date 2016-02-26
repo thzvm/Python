@@ -1,4 +1,5 @@
-#8.0+ albums from pitchfork.com to .CSV
+#8.0+ albums 
+##from pitchfork.com to .csv
 
 | Artist              | Album                   | Year | Genre      | Style            | Rating | 
 |---------------------|-------------------------|------|------------|------------------|--------| 
