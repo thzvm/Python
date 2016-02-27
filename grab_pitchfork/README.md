@@ -1,23 +1,32 @@
 #8.0+ albums 
 ##from pitchfork.com to .csv
 
-| Artist              | Album                   | Year | Genre      | Style            | Rating | 
-|---------------------|-------------------------|------|------------|------------------|--------| 
-|                     |                         |      |            |                  |        | 
-| Deerhoof            | Friend Opportunity      | 2007 | Rock       | Indie Rock       | 8,9    | 
-| Deerhunter          | Cryptograms             | 2007 | Rock       | Psychedelic Rock | 8,9    | 
-| Ellen Allien        | Berlinette              | 2003 | Electronic | Techno           | 8,9    | 
-| M.I.A.              | Kala                    | 2007 | Electronic | Breakbeat        | 8,9    | 
-| Miguel              | Wildheart               | 2015 | Hip Hop    | Contemporary R&B | 8,9    | 
-| Ricardo Villalobos  | Achso                   | 2005 | Electronic | Tech House       | 8,9    | 
-| Super Furry Animals | Rings Around the World  | 2001 | Rock       | Indie Rock       | 8,9    | 
-| Tarwater            | Animals, Suns and Atoms | 2000 | Electronic | Downtempo        | 8,9    | 
-| The Beach Boys      | Sunflower/Surf's Up     | 2000 | Rock       | Pop Rock         | 8,9    | 
-| The Shins           | Chutes Too Narrow       | 2003 | Rock       | Alternative Rock | 8,9    | 
-| Various Artists     | The Best of Studio One  | 2006 | Reggae     | Roots Reggae     | 8,9    | 
-| Ariel Pink          | Pom Pom                 | 2014 | Rock       | Lo-Fi            | 8,8    | 
-| Arovane             | Tides                   | 2000 | Electronic | IDM              | 8,8    | 
-| Autechre            | Confield                | 2001 | Electronic | Abstract         | 8,8    | 
+| Artist                           | Album                          | Genre      | Style            | Year | Rating | 
+|----------------------------------|--------------------------------|------------|------------------|------|--------| 
+| Faust                            | IV                             | Rock       | Krautrock        | 2006 | 9.4    | 
+| Bon Iver                         | For Emma, Forever Ago          | Rock       | Folk Rock        | 2007 | 8.1    | 
+| Edwyn Collins                    | Home Again                     | Rock       | Indie Rock       | 2007 | 8.0    | 
+| Sunset Rubdown                   | Random Spirit Lover            | Rock       | Indie Rock       | 2007 | 8.5    | 
+| Shocking Pinks                   | Shocking Pinks                 | Rock       | Shoegaze         | 2007 | 8.3    | 
+| Future of the Left               | Curses                         | Rock       | Noise            | 2007 | 8.0    | 
+| Ricardo Villalobos               | Fabric 36                      | Electronic | House            | 2007 | 8.7    | 
+| Baroness                         | Red Album                      | Rock       | Stoner Rock      | 2007 | 8.4    | 
+| Iron & Wine                      | 'The Shepherd''s Dog'          | Rock       | Folk Rock        | 2007 | 8.6    | 
+| Ewan Pearson                     | Piece Work                     | Electronic | House            | 2007 | 8.2    | 
+| Les Savy Fav                     | 'Let''s Stay Friends'          | Rock       | Punk             | 2007 | 8.3    | 
+| The Modern Lovers                | The Modern Lovers              | Rock       | Garage Rock      | 2007 | 9.2    | 
+| Sir Richard Bishop               | Polytheistic Fragments         | Rock       | Acoustic         | 2007 | 8.2    | 
+| Kanye West                       | Graduation                     | Hip Hop    | Pop Rap          | 2007 | 8.7    | 
+| Animal Collective                | Strawberry Jam                 | Rock       | Leftfield        | 2007 | 9.3    | 
+| Black Lips                       | Good Bad Not Evil              | Rock       | Garage Rock      | 2007 | 8.3    | 
+| Dirty Projectors                 | Rise Above                     | Electronic | Folk Rock        | 2007 | 8.1    | 
+| Jens Lekman                      | Night Falls Over Kortedala     | Rock       | Pop Rock         | 2007 | 9.0    | 
+| A Place to Bury Strangers        | A Place to Bury Strangers      | Rock       | Experimental     | 2007 | 8.4    | 
+| Napalm Death                     | Scum: 20th Anniversary Edition | Rock       | Hardcore         | 2007 | 8.4    | 
+| Prinzhorn Dance School           | Prinzhorn Dance School         | Electronic | Art Rock         | 2007 | 8.2    | 
+| Joan as Police Woman             | Real Life                      | Rock       | Alternative Rock | 2007 | 8.1    | 
+
+
 
 
 
