@@ -1,192 +1,178 @@
+import csv
 import time
 from json import loads
-from grab import Grab, error
+from grab import Grab
 from urllib.parse import quote
 from bs4 import BeautifulSoup as Soup
 from urllib.request import urlopen, HTTPError
 from multiprocessing.dummy import Pool as ThreadPool
 
-'''govnocode'''
-class pitchfork:
+PITC_URL = 'http://pitchfork.com/best/high-scoring-albums/'
+DISC_URL = 'https://api.discogs.com/database/search?'
+DISC_TOKEN = 'xSHfcMkUYLPrlhfapEaMVLyubAqWQLQJQjaBaoSD'
 
-    pitc_url = 'http://pitchfork.com/best/high-scoring-albums/'
-    disc_url = 'https://api.discogs.com/database/search?'
+grab_header = '//div[@id="main"]//*[@class="object-header"]'
+grab_artist = '//div[@class="info"]/h1'
+grab_album = '//div[@class="info"]/h2'
+grab_year_1 = '//div[@class="info"]/h3'
+grab_year_2 = '//div[@class="info"]/h4'
+grab_rating = '//div[@class="info"]/span'
 
-    grab_header = '//div[@id="main"]//*[@class="object-header"]'
-    grab_artist = '//div[@class="info"]/h1'
-    grab_album  = '//div[@class="info"]/h2'
-    grab_year_1 = '//div[@class="info"]/h3'
-    grab_year_2 = '//div[@class="info"]/h4'
-    grab_rating = '//div[@class="info"]/span'
+THREADS = 8
+DISCOGS = 'xSHfcMkUYLPrlhfapEaMVLyubAqWQLQJQjaBaoSD'
 
-    def __init__(self, discogs_api_token):
 
-        self.token = discogs_api_token
-        self.test = None
+def DiscogsRateLimit(error, query):
+    # Requests are throttled by the server to 240 per minute per IP address
+    try:
+        print('Wait 30 seconds, because:', error)
+        time.sleep(30)
+        print('Connect to api.discogs.com...')
+        disc_data = urlopen(query).read()
+        return disc_data
+    except HTTPError as error:
+        DiscogsRateLimit(error, query)
+
+
+def DiscogsQuery(artist=None, album=None, year=None):
+
+    try:
+        disc_query = DISC_URL
+
+        if artist != None:
+            disc_query += '&artist=' + artist
+        if album != None:
+            disc_query += '&release_title=' + album
+        if year != None:
+            disc_query += '&year=' + str(year)
+
+        disc_query += '&per_page=1&page=1&token=' + DISC_TOKEN
+        disc_query = quote(disc_query, safe=':&/?=')
+    except:
+        disc_query = None
+    try:
+        disc_data = urlopen(disc_query).read()
+        disc_resp = loads(disc_data.decode('utf-8'))
+    except HTTPError as e:
+        disc_data = DiscogsRateLimit(e, disc_query)
+        disc_resp = loads(disc_data.decode('utf-8'))
+
+    return disc_resp
+
+
+def start():
+
+    CSVFile(header=['Artist', 'Album', 'Genre', 'Style', 'Year', 'Rating'])
+    page = 1
+    page_not_found = None
+    while page_not_found == None:
+
         try:
-            test = Grab()
-            test.go(self.pitc_url)
-            if test.doc.select(self.grab_header).text() == '8.0+ Reviews':
-                self.test = True
-            urlopen(self.disc_url + '&per_page=1&token=' + self.token)
-        except IndexError:
-            print('Pitchfork...')
-            self.test = False
-        except HTTPError:
-            print('Discogs')
-            self.test = False
+            print('Page', page)
 
-        if self.test is True:
-            self.getFile(header=['Artist', 'Album', 'Genre', 'Style', 'Year', 'Ratings'])
-            self.__start__()
+            pitchfork_page = Grab()
+            pitchfork_page.go(PITC_URL + str(page))
+            soup = Soup(pitchfork_page.doc.select('//div[@id="main"]/ul[@class="object-grid "]').html(), 'lxml')
+            albums_on_page = []
+
+            for link in soup.find_all('a', href=True):
+                albums_on_page.append('http://pitchfork.com' + link['href'])
+
+            pool = ThreadPool(THREADS)
+
+            pool.map(pitchfork, albums_on_page)
+
+            page += 1
+
+            # if page > 1:
+            #   page_not_found = True
+
+        except IndexError as error:
+            print(error)
+            page_not_found = True
+
+
+def pitchfork(link):
+    album_page = Grab()
+    album_page.go(link)
+    artist = album_page.doc.select(grab_artist).text()
+
+    album = album_page.doc.select(grab_album).text()
+    try:
+        year = int(album_page.doc.select(grab_year_1).text()[-4:])
+    except:
+        year = int(album_page.doc.select(grab_year_2).text()[-4:])
+    rating = album_page.doc.select(grab_rating).text()
+
+    disc_resp = DiscogsQuery(artist=artist, album=album, year=year)
+    try:
+        genre = disc_resp['results'][0]['genre'][0]
+        if len(disc_resp['results'][0]['style']) > 0:
+            style = disc_resp['results'][0]['style'][0]
         else:
-            print('test is', self.test)
-            exit(1)
-
-    def __start__(self):
-
-        page = 1
-        page_not_found = None
-        while page_not_found == None:
-
-            try:
-                print('Page', page)
-
-                pitchfork_page = Grab()
-                pitchfork_page.go(self.pitc_url + str(page))
-                soup = Soup(pitchfork_page.doc.select('//div[@id="main"]/ul[@class="object-grid "]').html(), 'lxml')
-                albums_on_page = []
-
-                for link in soup.find_all('a', href=True):
-                    albums_on_page.append('http://pitchfork.com' + link['href'])
-                    
-                #TODO FAIL http://stackoverflow.com/questions/19846332/python-threading-inside-a-class
-                try:
-                    pool = ThreadPool(1)
-                    pool.map(self.getAlbum, albums_on_page)
-                except RuntimeError:
-                    time.sleep(60)
-                    pool = ThreadPool(int(len(albums_on_page) / 2))
-                    pool.map(self.getAlbum, albums_on_page)
-
-                page += 1
-
-                #if page > 1:
-                #   page_not_found = True
-
-            except IndexError as e:
-                print(e)
-                page_not_found = True
-
-    def getAlbum(self, link):
-
-        album_page = Grab()
-        album_page.go(link)
-        self.artist = album_page.doc.select(self.grab_artist).text()
-        self.album = album_page.doc.select(self.grab_album).text()
+            style = 'None'
+    except IndexError:
+        # try without &release_name=
+        disc_resp = DiscogsQuery(artist=artist, year=year)
         try:
-            self.year = int(album_page.doc.select(self.grab_year_1).text()[-4:])
-        except:
-            self.year = int(album_page.doc.select(self.grab_year_2).text()[-4:])
-        self.rating = album_page.doc.select(self.grab_rating).text()
-        self.genre = 'None'
-        self.style = 'None'
-        self.Discogs()
-
-    def DiscogsRateLimit(self, error):
-        '''Requests are throttled by the server to 240 per minute per IP address'''
-        try:
-            print('Wait 60 seconds, because:', error)
-            time.sleep(60)
-            print('Connect to api.discogs.com...')
-            self.disc_data = urlopen(self.disc_query).read()
-        except HTTPError as e:
-            self.DiscogsRateLimit(e)
-
-    def DiscogsQuery(self, artist=None, album=None, year=None):
-        ''''''
-        try:
-            self.disc_query = self.disc_url
-
-            if artist != None:
-                self.disc_query += '&artist=' + artist
-            if album != None:
-                self.disc_query += '&release_title=' + album
-            if year != None:
-                self.disc_query += '&year=' + str(year)
-
-            self.disc_query += '&per_page=1&page=1&token=' + self.token
-            self.disc_query = quote(self.disc_query, safe=':&/?=')
-        except:
-            self.disc_query = None
-        try:
-            self.disc_data = urlopen(self.disc_query).read()
-            self.disk_resp = loads(self.disc_data.decode('utf-8'))
-        except HTTPError as e:
-            self.DiscogsRateLimit(e)
-
-    def Discogs(self):
-        ''''''
-        # TODO Recursion!
-        self.DiscogsQuery(artist=self.artist, album=self.album, year=self.year)
-        try:
-            self.genre = self.disk_resp['results'][0]['genre'][0]
-            if len(self.disk_resp['results'][0]['style']) > 0:
-                self.style = self.disk_resp['results'][0]['style'][0]
+            genre = disc_resp['results'][0]['genre'][0]
+            if len(disc_resp['results'][0]['style']) > 0:
+                style = disc_resp['results'][0]['style'][0]
             else:
-                self.style = 'None'
+                style = 'None'
         except IndexError:
-            # try without &release_name=
-            self.DiscogsQuery(artist=self.artist, year=self.year)
+            # try without &year=
+            disc_resp = DiscogsQuery(artist=artist, album=album)
             try:
-                self.genre = self.disk_resp['results'][0]['genre'][0]
-                if len(self.disk_resp['results'][0]['style']) > 0:
-                    self.style = self.disk_resp['results'][0]['style'][0]
+                genre = disc_resp['results'][0]['genre'][0]
+                if len(disc_resp['results'][0]['style']) > 0:
+                    style = disc_resp['results'][0]['style'][0]
                 else:
-                    self.style = 'None'
+                    style = 'None'
             except IndexError:
-                # try without &year=
-                self.DiscogsQuery(artist=self.artist, album=self.album)
+                # try without &artist=
+                disc_resp = DiscogsQuery(album=album, year=year)
                 try:
-                    self.genre = self.disk_resp['results'][0]['genre'][0]
-                    if len(self.disk_resp['results'][0]['style']) > 0:
-                        self.style = self.disk_resp['results'][0]['style'][0]
+                    genre = disc_resp['results'][0]['genre'][0]
+                    if len(disc_resp['results'][0]['style']) > 0:
+                        style = disc_resp['results'][0]['style'][0]
                     else:
-                        self.style = 'None'
+                        style = 'None'
                 except IndexError:
-                    # try without &artist=
-                    self.DiscogsQuery(album=self.album, year=self.year)
-                    try:
-                        self.genre = self.disk_resp['results'][0]['genre'][0]
-                        if len(self.disk_resp['results'][0]['style']) > 0:
-                            self.style = self.disk_resp['results'][0]['style'][0]
-                        else:
-                            self.style = 'None'
-                    except IndexError:
-                        self.style = 'None'
-                        self.style = 'None'
+                    genre = 'None'
+                    style = 'None'
 
-        self.getFile()
+    CSVFile(artist=artist,
+            album=album,
+            genre=genre,
+            style=style,
+            year=year,
+            rating=rating)
 
-    def getFile(self, filename='data', header=None, format='csv'):
-        ''''''
-        name = filename + '.' + format
 
-        if format == 'csv':
-            import csv
-            with open(name, 'a', newline='') as csvfile:
-                writer = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-                if header != None:
-                    writer.writerow(header)
-                else:
-                    writer.writerow([self.artist, self.album, self.genre, self.style, self.year, self.rating])
+def CSVFile(filename='data2', header=None, artist=None, album=None,
+            genre=None, style=None, year=None, rating=None):
+
+
+    name = filename + '.csv'
+    art = str(artist).replace('/', '&')
+    alb = str(album).replace('"', '').replace('[', '(').replace(']', ')').replace(';', ':')
+
+    with open(name, 'a', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter=';', quoting=csv.QUOTE_MINIMAL)
+        if header != None:
+            writer.writerow(header)
+        else:
+            writer.writerow([art, alb, genre, style, year, float(rating)])
 
 
 if __name__ == '__main__':
     time_start = time.time()
-    DISCOGS = 'xSHfcMkUYLPrlhfapEaMVLyubAqWQLQJQjaBaoSD'
-
-    go = pitchfork(DISCOGS)
-
-    data_end = float(format(time.time() - time_start))
-    print('Process finished at ', round(data_end, 6))
+    try:
+        start()
+        data_end = float(format(time.time() - time_start))
+        print('Process finished at ', round(data_end, 6))
+    except KeyboardInterrupt as e:
+        print(e)
+        data_end = float(format(time.time() - time_start))
+        print('Process finished at ', round(data_end, 6))
