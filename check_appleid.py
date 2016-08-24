@@ -8,7 +8,7 @@ password = 'qwerty'
 
 
 def generate_mail_list(mail):
-    """Создаем и возвращаем возможные варианты опечаток для mail"""
+    
     # for elem in mail:
     #    pass
 
@@ -17,12 +17,11 @@ def generate_mail_list(mail):
 
 
 def check_mail_list(maillist, password):
-    """Проверяем список"""
+    
     browser = webdriver.Firefox()
     browser.set_window_position(0, 0)
     browser.set_window_size(900, 600)
-    browser.get('https://itunesconnect.apple.com/WebObjects/iTunesConnect.woa/'
-                'ra/ng/pp/1058480145/testflight/external')
+    browser.get('https://itunesconnect.apple.com')
     sleep(5)
     browser.switch_to.frame(browser.find_element_by_id("authFrame"))
 
